@@ -15,19 +15,20 @@ class Company:
         assert latitude is not None and longitude is not None, "latitude and longitude must be set"
         assert type is not None, "type must be set"
 
+
+        # ATTRIBUTES PROVIDED BY THE DATASET
+        self.name: str = name
+        self.type: CompanyType = type
+        # the tags of the company i.e. sectors
+        self.tags: List[str] = tags
+        self.latitude: float = latitude
+        self.longitude: float = longitude
+        # add more if needed...
+
         if self.name is None:
             self.name = "Unknown"
         if self.tags is None:
             self.tags = []
-
-        # ATTRIBUTES PROVIDED BY THE DATASET
-        self.name: str = None
-        self.type: CompanyType = None
-        # the tags of the company i.e. sectors
-        self.tags: List[str] = None
-        self.latitude: float = None
-        self.longitude: float = None
-        # add more if needed...
 
         # ATTRIBUTES THAT ARE CALCULATED
         # meta information we might want to attach to the recommendation
