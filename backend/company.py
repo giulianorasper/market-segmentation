@@ -38,3 +38,5 @@ class Company:
         self.targets: List[Company] = None
         # color code given as HEX string
         self.color: str = None
+
+c = Company(name='ABC',type=1,tags=[],latitude=1.0,longitude=2.0)
