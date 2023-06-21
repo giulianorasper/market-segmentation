@@ -41,8 +41,6 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
                     longitude=lon)
         res.append(c)
 
-        break
-
     cache.save()
 
     return res
