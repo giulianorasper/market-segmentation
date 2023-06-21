@@ -1,10 +1,9 @@
-import copy
 import random
 from typing import List
 
 from geopy.distance import geodesic
 
-from company import Company
+from backend.code.company import Company, CompanyType
 
 GERMANY_LAT_MIN = 47.2701
 GERMANY_LAT_MAX = 55.0991
@@ -74,7 +73,7 @@ class LocationRecommender:
 
     def get_random_possible_company_location(self):
         latitude, longitude = self.get_random_point_in_germany()
-        company = Company(latitude=latitude, longitude=longitude, type=Company.Type.RECOMMENDATION)
+        company = Company(latitude=latitude, longitude=longitude, type=CompanyType.RECOMMENDATION)
         return company
 
     def get_random_possible_company_locations(self, n: int):
@@ -84,7 +83,7 @@ class LocationRecommender:
         return recommendations
 
     def get_location_recommendations(self, max_companies: int):
-        SAMPLING_SIZE = 10000
+        SAMPLING_SIZE = 100
         sampled_locations = self.get_random_possible_company_locations(SAMPLING_SIZE)
         recommendations = []
 

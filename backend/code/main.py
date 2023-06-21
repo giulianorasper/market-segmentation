@@ -1,6 +1,4 @@
 import preprocessing
-from location_recommender import LocationRecommender
-
 
 def run():
     companies = preprocessing.get_companies()
@@ -13,4 +11,5 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    set(['A', 'B', 'C'])
+    #run()

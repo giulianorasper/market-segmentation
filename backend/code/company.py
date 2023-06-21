@@ -28,7 +28,7 @@ class Company:
         if self.name is None:
             self.name = "Unknown"
         if self.tags is None:
-            self.tags = []
+            self.tags: List[str] = []
 
         # ATTRIBUTES THAT ARE CALCULATED
         # meta information we might want to attach to the recommendation
@@ -39,4 +39,8 @@ class Company:
         # color code given as HEX string
         self.color: str = None
 
-c = Company(name='ABC',type=1,tags=[],latitude=1.0,longitude=2.0)
+    def __str__(self):
+        # print all attributes and their values
+        return str(self.__dict__)
+
+#c = Company(name='ABC',type=1,tags=[],latitude=1.0,longitude=2.0)
