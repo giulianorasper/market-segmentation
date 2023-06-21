@@ -2,7 +2,8 @@ import os.path
 import pickle
 from typing import List
 
-import config
+from backend.code import config
+from backend.code.cache import Cache
 from backend.code.company import Company, CompanyType
 
 import pandas as pd  # PR: pandas needed to extract data from xlsx file
@@ -14,27 +15,24 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
     :return: The list of companies contained in the dataset.
     """
 
-    if not os.path.exists(config.dumps_path):
-        os.makedirs(config.dumps_path)
-
     file_name = os.path.basename(filepath)
 
-    dump_file_path = config.dumps_path + file_name + ".pkl"
+    cache = Cache(f"companies_{file_name}", [])
+    res = cache.value
 
-    if os.path.exists(dump_file_path):
-        print("Loading companies from dump...")
-        with open(dump_file_path, 'rb') as file:
-            obj = pickle.load(file)
-        return obj
+    if res:
+        return res
+
 
     # Reading the dataset file
     df = pd.read_excel(filepath)
-    res = []
 
     # Iterating over dataset to create Company objects and put them in a list
     for index, row in df.iterrows():
 
         lat, lon = string_to_tuple(row['PLZ_Coordinates'])
+
+        lat, lon = config.rounding_policy(lat), config.rounding_policy(lon)
 
         c = Company(name=row['Company Name 1'],
                     type=CompanyType.TARGET,  # by default, we assume that all companies are targets
@@ -45,9 +43,7 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
 
         break
 
-    # Saving the list of companies to a dump file
-    with open(dump_file_path, 'wb') as file:
-        pickle.dump(res, file)
+    cache.save()
 
     return res
 

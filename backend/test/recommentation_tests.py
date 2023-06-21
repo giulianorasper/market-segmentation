@@ -1,10 +1,10 @@
+import random
 import unittest
 from typing import List, Tuple
 
 from hypothesis import given, strategies as st, settings
 
-import config
-from backend.code import preprocessing
+from backend.code import preprocessing, config
 from backend.code.company import CompanyType, Company
 from backend.code.location_recommender import LocationRecommender
 
@@ -43,8 +43,9 @@ class TestRecommendations(unittest.TestCase):
 
     def test_dataset_recommendation(self):
         companies = preprocessing.get_companies(config.companies_path)
-        target = companies[0].tags[0]
+        size = len(companies)
+        id = random.randint(0, size-1)
+        target = companies[id].tags[id]
         recommender = LocationRecommender(companies)
         recommender.set_target_tags([target])
         recommendations = recommender.get_attributed_location_recommendations(max_companies=10)
-        print(recommendations)

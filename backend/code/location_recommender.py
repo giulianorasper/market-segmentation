@@ -1,8 +1,11 @@
 import random
+import time
 from typing import List
 
 from geopy.distance import geodesic
 
+from backend.code import config
+from backend.code.cache import Cache
 from backend.code.company import Company, CompanyType
 
 GERMANY_LAT_MIN = 47.2701
@@ -16,8 +19,15 @@ class LocationRecommender:
         self.companies = companies
         self.target_tags = []
         self.targets = []
-        self.min_recommendation_distance = 1 # km
+        self.min_recommendation_distance = 5 # km
         self.display_radius = 1 # km
+        start = time.time()
+        self.cache = Cache("distances", {})
+        self.distances = self.cache.value
+        print("Cache loaded in", time.time() - start, "seconds")
+
+        self.hits = 0
+        self.misses = 0
 
     def set_target_tags(self, target_tags: List[str]):
         self.target_tags = target_tags
@@ -39,11 +49,24 @@ class LocationRecommender:
 
     def distance(self, company1: Company, company2: Company) -> float:
         # Create coordinate tuples
+
         coordinate1 = (company1.latitude, company1.longitude)
         coordinate2 = (company2.latitude, company2.longitude)
 
+        if (coordinate1, coordinate2) in self.distances:
+            self.hits += 1
+            return self.distances[(coordinate1, coordinate2)]
+        if (coordinate2, coordinate1) in self.distances:
+            self.hits += 1
+            return self.distances[(coordinate2, coordinate1)]
+
+
         # Calculate distance using geodesic distance
         distance = geodesic(coordinate1, coordinate2).kilometers
+
+        self.distances[(coordinate1, coordinate2)] = distance
+        self.misses += 1
+
         return distance
 
     def potential(self, company: Company):
@@ -68,6 +91,9 @@ class LocationRecommender:
         latitude = random.uniform(GERMANY_LAT_MIN, GERMANY_LAT_MAX)
         longitude = random.uniform(GERMANY_LON_MIN, GERMANY_LON_MAX)
 
+        latitude = config.rounding_policy(latitude)
+        longitude = config.rounding_policy(longitude)
+
         return latitude, longitude
 
 
@@ -83,7 +109,11 @@ class LocationRecommender:
         return recommendations
 
     def get_location_recommendations(self, max_companies: int):
-        SAMPLING_SIZE = 100
+
+        SAMPLING_SIZE = 100000
+        print()
+        print(f"Performing location recommendations (max: {max_companies}) using {SAMPLING_SIZE} monte carlo samples.")
+
         sampled_locations = self.get_random_possible_company_locations(SAMPLING_SIZE)
         recommendations = []
 
@@ -98,8 +128,11 @@ class LocationRecommender:
             recommendations.append(best_recommendation)
 
             # Remove samples that are too close to the best recommendation
-            sampled_locations = [company for company in sampled_locations if self.value(company) >= self.min_recommendation_distance]
+            sampled_locations = [company for company in sampled_locations if self.distance(best_recommendation, company) >= self.min_recommendation_distance]
 
+        self.cache.save()
+        print(f"Cache hits: {self.hits / (self.hits + self.misses) * 100}%")
+        print(f"recommendation: {[str(r) for r in recommendations]}")
         return recommendations
 
     def get_attributed_location_recommendations(self, max_companies: int):
