@@ -1,3 +1,4 @@
+import math
 import os.path
 import pickle
 from typing import List
@@ -31,12 +32,24 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
     for index, row in df.iterrows():
 
         lat, lon = string_to_tuple(row['PLZ_Coordinates'])
-
         lat, lon = config.rounding_policy(lat), config.rounding_policy(lon)
+
+        # verify that the coordinates are in valid range
+        fail = False
+        if math.isnan(lat) or math.isnan(lon):
+            fail = True
+        if lat < -90 or lat > 90:
+            fail = True
+        if lon < -180 or lon > 180:
+            fail = True
+
+        if fail:
+            print(f"invalid coordinates for company {row['Company Name 1']} --> skipping")
+            continue
 
         c = Company(name=row['Company Name 1'],
                     type=CompanyType.TARGET,  # by default, we assume that all companies are targets
-                    tags=[row['Branchencode1']],
+                    tags=[row['CustomSector']],
                     latitude=lat,
                     longitude=lon)
         res.append(c)

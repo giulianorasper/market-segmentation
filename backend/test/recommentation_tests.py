@@ -45,7 +45,7 @@ class TestRecommendations(unittest.TestCase):
         companies = preprocessing.get_companies(config.companies_path)
         size = len(companies)
         id = random.randint(0, size-1)
-        target = companies[id].tags[id]
+        target = companies[id].tags[0]
         recommender = LocationRecommender(companies)
         recommender.set_target_tags([target])
         recommendations = recommender.get_attributed_location_recommendations(max_companies=10)

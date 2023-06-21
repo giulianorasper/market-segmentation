@@ -15,7 +15,7 @@ GERMANY_LON_MAX = 15.0419
 
 
 class LocationRecommender:
-    def __init__(self, companies: List[Company]):
+    def __init__(self, companies: List[Company], sample_size: int = 100000):
         self.companies = companies
         self.target_tags = []
         self.targets = []
@@ -24,6 +24,7 @@ class LocationRecommender:
         start = time.time()
         self.cache = Cache("distances", {})
         self.distances = self.cache.value
+        self.sample_size = sample_size
         print("Cache loaded in", time.time() - start, "seconds")
 
         self.hits = 0
@@ -33,6 +34,7 @@ class LocationRecommender:
         self.target_tags = target_tags
         # all companies that have at least one of the target tags
         self.targets = [company for company in self.companies if set(company.tags).intersection(set(target_tags))]
+        print("Found", len(self.targets), "target companies")
 
     def value(self, recommended_company, target_company: Company = None) -> float:
         # if we want to know the general value,
@@ -110,7 +112,7 @@ class LocationRecommender:
 
     def get_location_recommendations(self, max_companies: int):
 
-        SAMPLING_SIZE = 100000
+        SAMPLING_SIZE = self.sample_size
         print()
         print(f"Performing location recommendations (max: {max_companies}) using {SAMPLING_SIZE} monte carlo samples.")
 
@@ -140,5 +142,8 @@ class LocationRecommender:
         for recommendation in recommendations:
             recommendation.targets = [target for target in self.targets if self.distance(recommendation, target) <= self.display_radius]
         return recommendations
+
+    def set_sample_size(self, sample_size: int):
+        self.sample_size = sample_size
 
 
