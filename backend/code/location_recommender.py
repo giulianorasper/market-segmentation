@@ -2,11 +2,13 @@ import random
 import time
 from typing import List
 
+from geopy import Nominatim
 from geopy.distance import geodesic
 
 from backend.code import config
 from backend.code.cache import Cache
 from backend.code.company import Company, CompanyType
+from backend.code.value_predictor import ValuePredictor
 
 GERMANY_LAT_MIN = 47.2701
 GERMANY_LAT_MAX = 55.0991
@@ -19,16 +21,23 @@ class LocationRecommender:
         self.companies = companies
         self.target_tags = []
         self.targets = []
-        self.min_recommendation_distance = 5 # km
+        self.min_recommendation_distance = 50 # km
         self.display_radius = 1 # km
-        start = time.time()
-        self.cache = Cache("distances", {})
-        self.distances = self.cache.value
+
         self.sample_size = sample_size
-        print("Cache loaded in", time.time() - start, "seconds")
+        self.miss_time = 0
 
         self.hits = 0
         self.misses = 0
+
+        self.value_predictor: ValuePredictor = ValuePredictor()
+        if not self.value_predictor.is_initialized():
+            self.cache = Cache("distances", {})
+            self.distances = self.cache.value
+            self.value_cache = Cache("values", {})
+            self.values = self.value_cache.value
+        else:
+            self.distances = {}
 
     def set_target_tags(self, target_tags: List[str]):
         self.target_tags = target_tags
@@ -40,14 +49,25 @@ class LocationRecommender:
         # if we want to know the general value,
         # we just sum up the value of each potential target companies
         if target_company is None:
+            if self.value_predictor.is_initialized():
+                return self.value_predictor.predict_single(*recommended_company.get_lat_long(), self.targets[0].tags[0])
+
+            if (recommended_company.get_lat_long(), self.targets[0].tags[0]) in self.values:
+                self.value_cache.hit()
+                return self.values[recommended_company.get_lat_long(), self.targets[0].tags[0]]
+            start = time.time()
             values = [self.value(recommended_company, target) for target in self.targets]
-            return sum(values)
+            self.miss_time += time.time() - start
+            total = sum(values)
+            self.values[recommended_company.get_lat_long(), self.targets[0].tags[0]] = total
+            self.value_cache.miss()
+            return total
 
         return self.vicinity(recommended_company, target_company) * self.potential(target_company)
 
     def vicinity(self, origin_company: Company, target_company: Company = None) -> float:
-        M = 1000  # how far we expect the farthest possible recommendation point to be
-        return (M - self.distance(origin_company, target_company)) / M
+        M = 1000  # hard coded maximum distance in km
+        return max((M - self.distance(origin_company, target_company) / M), 0)
 
     def distance(self, company1: Company, company2: Company) -> float:
         # Create coordinate tuples
@@ -75,18 +95,15 @@ class LocationRecommender:
         # one could define how much potential a company has
         return 1
 
+    def is_in_germany(self, latitude, longitude):
+        geolocator = Nominatim(user_agent="my-app")  # Create a geolocator object
+        location = geolocator.reverse(f"{latitude}, {longitude}", exactly_one=True)  # Perform reverse geocoding
 
+        if location is not None:
+            country = location.raw['address'].get('country')  # Extract the country information
+            return country == 'Germany'
 
-    def is_inside_germany(self, latitude: float, longitude: float) -> bool:
-        # Check latitude range
-        if not (GERMANY_LAT_MIN <= latitude <= GERMANY_LAT_MAX):
-            return False
-
-        # Check longitude range
-        if not (GERMANY_LON_MIN <= longitude <= GERMANY_LON_MAX):
-            return False
-
-        return True
+        return False
 
     def get_random_point_in_germany(self):
         # Generate random latitude and longitude
@@ -95,6 +112,9 @@ class LocationRecommender:
 
         latitude = config.rounding_policy(latitude)
         longitude = config.rounding_policy(longitude)
+
+        # if not self.is_in_germany(latitude, longitude):
+        #     return self.get_random_point_in_germany()
 
         return latitude, longitude
 
@@ -131,10 +151,15 @@ class LocationRecommender:
 
             # Remove samples that are too close to the best recommendation
             sampled_locations = [company for company in sampled_locations if self.distance(best_recommendation, company) >= self.min_recommendation_distance]
+            print(f"Remaining samples: {len(sampled_locations)}")
 
-        self.cache.save()
-        print(f"Cache hits: {self.hits / (self.hits + self.misses) * 100}%")
-        print(f"recommendation: {[str(r) for r in recommendations]}")
+        if not self.value_predictor.is_initialized():
+            self.cache.save()
+            self.value_cache.save()
+            self.value_cache.report()
+            print(f"Cache hits: {self.hits / (self.hits + self.misses) * 100}%")
+            print(f"recommendation: {[str(r) for r in recommendations]}")
+            print(f"miss time: {self.miss_time}")
         return recommendations
 
     def get_attributed_location_recommendations(self, max_companies: int):

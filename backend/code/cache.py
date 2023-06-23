@@ -7,8 +7,10 @@ from backend.code import config
 
 class Cache:
 
-    def __init__(self, id: str, default):
+    def __init__(self, id: str, default=None):
         cache_folder = config.cache_path
+        self.hits = 0
+        self.misses = 0
         if not os.path.exists(cache_folder):
             os.makedirs(cache_folder)
 
@@ -25,9 +27,23 @@ class Cache:
             print(f"Cache loaded in {config.rounding_policy(time.time() - start)} seconds")
         else:
             print(f"Creating cache with id {id}...")
+            if default is None:
+                raise ValueError("default must not be None")
             self.value = default
 
     def save(self):
         with open(self.cache_file, 'wb') as file:
             pickle.dump(self.value, file)
+
+    def hit(self):
+        self.hits += 1
+
+    def miss(self):
+        self.misses += 1
+
+    def report(self):
+        print(f"Cache report for {self.cache_file}:")
+        print(f"  Hits: {self.hits}")
+        print(f"  Misses: {self.misses}")
+        print(f"  Hit rate: {self.hits / (self.hits + self.misses) * 100}%")
 

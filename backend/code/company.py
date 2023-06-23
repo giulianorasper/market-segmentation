@@ -43,4 +43,7 @@ class Company:
         # print all attributes and their values
         return str(self.__dict__)
 
+    def get_lat_long(self):
+        return self.latitude, self.longitude
+
 #c = Company(name='ABC',type=1,tags=[],latitude=1.0,longitude=2.0)

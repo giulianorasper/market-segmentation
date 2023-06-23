@@ -3,3 +3,5 @@ geopy
 pandas
 hypothesis
 openpyxl
+matplotlib
+tqdm
