@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Map with Options</title>
+  <link rel="stylesheet" href="../static/css/styling.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+
+  <style>
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    #container {
+      display: flex;
+      height: 100%;
+    }
+
+    #sidebar {
+      width: 300px; /* Adjust the width as per your requirement */
+      padding: 20px;
+      background-color: #f2f2f2;
+    }
+
+    #map {
+      flex-grow: 1;
+      height:100%; /* Adjust the height as per your requirement */
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="sidebar">
+      <h2>Options</h2>
+      <!-- Sidebar content here -->
+      <div class="parameters">
+        <label for="your_company" >Your Company's Industry:</label>
+        <div class="parameter-info" data-tooltip="This is your company's industry or specialization. Please choose only 1 option.">
+          <i class="fas fa-solid fa-info fa-xs"></i>
+        </div>
+        <select id="your_company">
+          <option value="" disabled selected hidden >Choose One</option>
+          <option value="Service">Service</option>
+          <option value="Versicherung">Versicherung</option>
+          <option value="Immobilien">Immobilien</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Kultur / Sozial">Kultur / Sozial</option>
+          <option value="Vereine">Vereine</option>
+          <option value="Verwaltung / Beratung">Verwaltung / Beratung</option>
+          <option value="IT">IT</option>
+          <option value="Logistik">Logistik</option>
+          <option value="Einzelhandel">Einzelhandel</option>
+          <option value="Bau">Bau</option>
+          <option value="Großhandel">Großhandel</option>
+          <option value="Gesundheit / Fitness">Gesundheit / Fitness</option>
+          <option value="Finanzen">Finanzen</option>
+          <option value="Tourismus / Gastro">Tourismus / Gastro</option>
+          <option value="Maschinen / Ingenier">Maschinen / Ingenier</option>
+          <option value="Produzenten / Hersteller / Industrie">Produzenten / Hersteller / Industrie</option>
+          <option value="Handwerk">Handwerk</option>
+          <option value="Selbstständige">Selbstständige</option>
+          <option value="Wissenschaft / Forschung">Wissenschaft / Forschung</option>
+        </select>
+      </div>
+      
+
+    <div class="parameters">
+    <label for="target_companies">Target Companies:</label>
+    <div class="parameter-info" data-tooltip="This is your targetted companies' industry or specialization. You may choose several options.">
+        <i class="fas fa-solid fa-info fa-xs"></i>
+          </div>
+    <div class="dropdown">
+      <input type="text" id="target_companies_input" class="dropdown-input" placeholder="Target companies">
+      <ul id="target_companies_dropdown" class="target-companies-dropdown-menu"></ul>
+    </div>
+    <div id="target_companies_selections"></div>
+    </div>
+
+    
+
+    <div class="parameters">
+    <label for="saarland_only">Saarland Only:</label>
+    <div class="parameter-info" data-tooltip="Limit results to Saarland.">
+        <i class="fas fa-solid fa-info fa-xs"></i>
+          </div>
+    <input type="checkbox" id="saarland_only">
+    </div>
+
+    <div class="parameters">
+    <label for="max_recommendations">Max Recommendations:</label>
+    <div class="parameter-info" data-tooltip="Number of max reccomendations. Min 1, Max 100.">
+        <i class="fas fa-solid fa-info fa-xs"></i>
+          </div>
+    <input type="range" id="max_recommendations" min="1" max="100">
+    <output id="max_recommendations_value"></output>
+    </div>
+
+    <div class="parameters">
+    <label for="consider_employee_count">Consider Employee Count:</label>
+    
+    <input type="checkbox" id="consider_employee_count">
+    </div>
+    
+    <div class="parameters">
+    <label for="consider_tax_rates">Consider Tax Rates:</label>
+    <input type="checkbox" id="consider_tax_rates">
+    </div>
+
+    <div class="parameters">
+        <label for="consider_possible_competitors">Consider Possible Competitors:</label>
+        <input type="checkbox" id="consider_possible_competitors">
+    </div>
+
+    <div class="parameters">
+        <label for="detailed_view">Detailed View:</label>
+        <select id="detailed_view">
+          <option value="SHOW_COMPETITORS">Show Competitors</option>
+          <option value="SHOW_TARGETS">Show Targets</option>
+          <option value="SHOW_BOTH">Show Both</option>
+        </select>
+    </div>
+    
+    <div class="parameters">
+        
+    <label for="details_radius">Details Radius (in km):</label>
+    <input type="number" id="details_radius" min="1" max="1000">
+
+    </div>
+
+    <button id="apply_button">Apply</button>
+  </div>
+  <div id="map">
+
+  </div>
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([51.1657, 10.4515], 6);
+
+    // Add a tile layer to display the map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+    }).addTo(map);
+  </script>
+  <script src="../static/js/target_companies.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chroma-js@2.1.1/chroma.min.js"></script>
+  <script>
+    function drawMap(recommendations, radius) {
+      // Remove previous map markers if any
+      // ...
+      console.log('Map:', map._layers);
+      for (const layerId in map._layers) {
+        if (map._layers[layerId].addTo) {
+          // Remove the layer from the map
+          if(layerId != 25){
+            map.removeLayer(map._layers[layerId]);
+          }
+        }
+      }
+      // Determine the color range from red to blue
+      const colorRange = chroma.scale(['red', 'blue']).colors(recommendations.length);
+    
+      // Iterate over the recommendations and add markers to the map
+      recommendations.forEach((recommendation, index) => {
+        const { latitude, longitude } = recommendation.geolocation;
+        const color = colorRange[index];
+    
+        // Create a marker with a circle and set its color
+        const zoomLevel = map.getZoom();
+        const latLng = L.latLng(latitude, longitude);
+        const point = map.latLngToLayerPoint(latLng);
+        const earthCircumference = 40075017;
+        const tileSize = 256; // Size of each tile in pixels (default for Leaflet)
+        const mapSize = tileSize * Math.pow(2, zoomLevel); // Total size of the map in pixels
+
+        const metersPerPixel = earthCircumference * Math.cos((latitude * Math.PI) / 180) / mapSize;
+        const radiusInPixels = (radius * 1000) / metersPerPixel;
+
+        console.log(`Radius In KM: ${radius}, Radius in px: ${radiusInPixels}, zoomLevel: ${zoomLevel} `)
+        const marker = L.circleMarker([latitude, longitude], {
+          radius: radiusInPixels,
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.8,
+        }).addTo(map);
+    
+        // Bind a popup with recommendation details to the marker
+        //marker.bindPopup(getRecommendationPopupContent(recommendation));
+      });
+    }
+    
+    
+    // Example JavaScript code to add event listener to the apply button
+    const applyButton = document.getElementById('apply_button');
+    applyButton.addEventListener('click', applyOptions);
+
+    // Function to apply the selected options
+    function applyOptions() {
+      // Retrieve the selected options from the sidebar
+      const selectedTargetCompanies = getSelectedTargetCompanies();
+      const yourCompany = document.getElementById('your_company').value;
+      const saarlandOnly = document.getElementById('saarland_only').checked;
+      const maxRecommendations = document.getElementById('max_recommendations').value;
+      const considerEmployeeCount = document.getElementById('consider_employee_count').checked;
+      const considerTaxRates = document.getElementById('consider_tax_rates').checked;
+      const considerPossibleCompetitors = document.getElementById('consider_possible_competitors').checked;
+      const detailedView = document.getElementById('detailed_view').value;
+      const detailsRadius = document.getElementById('details_radius').value;
+      
+
+      const parameters = {
+        yourCompany,
+        selectedTargetCompanies,
+        saarlandOnly,
+        maxRecommendations,
+        detailsRadius
+      }
+
+      fetch('/save_parameters', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(parameters)
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Process the recommendations data here
+        console.log(data);
+        drawMap(data, detailsRadius)
+        // Perform any necessary operations on the recommendations
+        // Update the HTML or perform other actions based on the recommendations
+  })
+      .catch(error => {
+        console.error('Error saving parameters:', error);
+      });
+      
+       // Redraw the map with the updated options
+       //drawMap(allCompanies);
+       if (saarlandOnly) {
+        const saarlandBounds = L.latLngBounds(
+          L.latLng(49.2, 6.5), // Southwest corner coordinate (latitude, longitude)
+          L.latLng(49.6, 7.3)  // Northeast corner coordinate (latitude, longitude)
+        );
+        map.fitBounds(saarlandBounds);
+      } else {
+        const germanyBounds = L.latLngBounds(
+          L.latLng(47.2, 5.5), // Southwest corner coordinate (latitude, longitude)
+          L.latLng(55.2, 15.2)  // Northeast corner coordinate (latitude, longitude)
+        );
+        map.fitBounds(germanyBounds);
+      }
+      
+      // Use the selected options to make the necessary API calls or updates
+      // ...
+
+      // Redraw the map with the updated options
+     
+      
+    }
+  </script>
+</body>
+</html>
