@@ -6,7 +6,7 @@ from backend.code.location_recommender import LocationRecommender
 
 
 def run():
-    companies = preprocessing.get_companies()
+    companies = preprocessing.get_companies(config.companies_path)
 
     # use a small sample size for testing
     sample_size = 10
