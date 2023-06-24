@@ -10,6 +10,7 @@ from backend.code.location_recommender import LocationRecommender
 
 
 app = Flask(__name__, static_url_path='/static')
+companies = preprocessing.get_companies(config.companies_path)
 
 @app.route('/')
 def index():
@@ -35,26 +36,26 @@ def get_recommendations():
     # Extract parameters
     the_target = parameters['selectedTargetCompanies']
     min_distance = 10
-    radius = parameters['detailsRadius']
-    max_recommendations = parameters['maxRecommendations']
+    radius = int(parameters['detailsRadius'])
+    max_recommendations = int(parameters['maxRecommendations'])
 
-    #companies = preprocessing.get_companies(config.companies_path)
 
     # use a small sample size for testing
     sample_size = 10
-    #recommender = LocationRecommender(companies, sample_size=sample_size)
+    recommender = LocationRecommender(companies, sample_size=sample_size)
 
     # Set the target tags, minimum distance, and radius
-    #recommender.set_target_tags([the_target])
-    #recommender.set_min_recommendation_distance(min_distance)
-    #recommender.set_detailed_view_radius(radius)
+    recommender.set_target_tags(the_target)
+    recommender.set_min_recommendation_distance(min_distance)
+    recommender.set_detailed_view_radius(radius)
 
     # Get recommendations
-    #recommendations: List[Company] = recommender.get_attributed_location_recommendations(max_companies=max_recommendations)
+    recommendations: List[Company] = recommender.get_attributed_location_recommendations(max_companies=max_recommendations)
 
     # Convert recommendations to JSON
-    #recommendations_json = [company.to_dict() for company in recommendations]
-    
+    recommendations = [company.to_map() for company in recommendations]
+
+
     """
     recommendations should be in this format:
     {
@@ -65,7 +66,7 @@ def get_recommendations():
     }
     This returned to js and drawn on the map
     """
-    recommendations = [{
+    recommendations2 = [{
         "geolocation": {
         "latitude": 51.3396,
         "longitude": 12.3713
@@ -86,7 +87,9 @@ def get_recommendations():
     ]
         
     # Return recommendations as JSON response
-    return json.dumps(recommendations)
+    json_recommendations = json.dumps(recommendations, indent=4)
+    print(json_recommendations)
+    return json_recommendations
 
 if __name__ == '__main__':
     app.run(debug=True)
