@@ -15,12 +15,12 @@ def generate():
                 labels.append(tag)
 
     recommender = LocationRecommender(companies)
-    recommender.set_sample_size(1000)
+    recommender.set_sample_size(100)
 
     time_taken = 0
     start = time.time()
 
-    hours = 8
+    hours = 3
     _n_hours = 60 * 60 * hours
 
     while time_taken < _n_hours:

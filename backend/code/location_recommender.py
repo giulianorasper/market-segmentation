@@ -45,6 +45,12 @@ class LocationRecommender:
         self.targets = [company for company in self.companies if set(company.tags).intersection(set(target_tags))]
         print("Found", len(self.targets), "target companies")
 
+    def set_detailed_view_radius(self, radius: int):
+        self.display_radius = radius
+
+    def set_min_recommendation_distance(self, distance: int):
+        self.min_recommendation_distance = distance
+
     def value(self, recommended_company, target_company: Company = None) -> float:
         # if we want to know the general value,
         # we just sum up the value of each potential target companies
@@ -156,7 +162,7 @@ class LocationRecommender:
             print(f"Remaining samples: {len(sampled_locations)}")
 
         if not self.value_predictor.is_initialized():
-            self.cache.save()
+            # self.cache.save()
             self.value_cache.save()
             self.value_cache.report()
             print(f"Cache hits: {self.hits / (self.hits + self.misses) * 100}%")
