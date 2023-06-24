@@ -58,16 +58,18 @@ class LocationRecommender:
             start = time.time()
             values = [self.value(recommended_company, target) for target in self.targets]
             self.miss_time += time.time() - start
-            total = sum(values)
-            self.values[recommended_company.get_lat_long(), self.targets[0].tags[0]] = total
+            value = sum(values)
+            self.values[recommended_company.get_lat_long(), self.targets[0].tags[0]] = value
             self.value_cache.miss()
-            return total
+            return value
 
-        return self.vicinity(recommended_company, target_company) * self.potential(target_company)
+        value = self.vicinity(recommended_company, target_company) * self.potential(target_company)
+        return value
 
     def vicinity(self, origin_company: Company, target_company: Company = None) -> float:
         M = 1000  # hard coded maximum distance in km
-        return max((M - self.distance(origin_company, target_company) / M), 0)
+        vicinity = max((M - self.distance(origin_company, target_company)) / M, 0)
+        return vicinity
 
     def distance(self, company1: Company, company2: Company) -> float:
         # Create coordinate tuples
