@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import List
 
@@ -45,5 +46,14 @@ class Company:
 
     def get_lat_long(self):
         return self.latitude, self.longitude
+
+    def to_map(self):
+        info = {
+            "geolocation": {
+                "latitude": self.latitude,
+                "longitude": self.longitude,
+            },
+        }
+        return info
 
 #c = Company(name='ABC',type=1,tags=[],latitude=1.0,longitude=2.0)
