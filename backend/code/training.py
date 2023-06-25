@@ -59,8 +59,8 @@ def run():
     X_test = scaler.transform(X_test)
 
     # Create an instance of the MLPClassifier
-    hidden_layer_sizes = (1000, 1000)
-    mlp = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes, max_iter=10000, random_state=42, verbose=True, early_stopping=True, learning_rate='adaptive', batch_size=10000)
+    hidden_layer_sizes = (200, 200, 200, 200)
+    mlp = MLPRegressor(hidden_layer_sizes=hidden_layer_sizes, max_iter=10000, random_state=42, verbose=True, early_stopping=True, learning_rate='adaptive', batch_size=1000, tol=1e-5)
 
     print(f"Network architecture: {X_test.shape[1]} -> {hidden_layer_sizes} -> 1")
 

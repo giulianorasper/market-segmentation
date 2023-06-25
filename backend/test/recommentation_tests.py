@@ -48,6 +48,6 @@ class TestRecommendations(unittest.TestCase):
         target = companies[id].tags[0]
         recommender = LocationRecommender(companies)
         recommender.set_target_tags([target])
-        recommender.set_sample_size(1000)
-        recommendations = recommender.get_attributed_location_recommendations(max_companies=10)
+        recommender.set_sample_size(10000)
+        recommendations = recommender.get_location_recommendations(max_companies=50)
         print([(company.latitude, company.longitude) for company in recommendations])

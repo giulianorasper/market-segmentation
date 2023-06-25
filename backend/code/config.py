@@ -16,4 +16,4 @@ companies_path = resources_path + companies_table_to_load
 # 2: ~1km distance between samples
 # 3: <1m distance between samples
 def rounding_policy(x):
-    return round(x, 2)
+    return round(x, 3)

@@ -30,6 +30,8 @@ class LocationRecommender:
         self.hits = 0
         self.misses = 0
 
+        self.M = 30
+
         self.value_predictor: ValuePredictor = ValuePredictor()
         if not self.value_predictor.is_initialized():
             self.cache = Cache("distances", {})
@@ -50,6 +52,9 @@ class LocationRecommender:
 
     def set_min_recommendation_distance(self, distance: int):
         self.min_recommendation_distance = distance
+
+    def set_M(self, M: int):
+        self.M = M
 
     def value(self, recommended_company, target_company: Company = None) -> float:
         # if we want to know the general value,
@@ -73,7 +78,7 @@ class LocationRecommender:
         return value
 
     def vicinity(self, origin_company: Company, target_company: Company = None) -> float:
-        M = 1000  # hard coded maximum distance in km
+        M = self.M # maximum distance in km
         vicinity = max((M - self.distance(origin_company, target_company)) / M, 0)
         return vicinity
 
@@ -145,21 +150,42 @@ class LocationRecommender:
         print(f"Performing location recommendations (max: {max_companies}) using {SAMPLING_SIZE} monte carlo samples.")
 
         sampled_locations = self.get_random_possible_company_locations(SAMPLING_SIZE)
+        sampled_locations.sort(key=lambda x: self.value(x), reverse=True)
         recommendations = []
 
         for _ in range(max_companies):
             if len(sampled_locations) == 0:
                 break
 
+            print("Sampled locations:", len(sampled_locations), end="\r")
+
             # Find the best recommendation
-            best_recommendation = max(sampled_locations, key=lambda company: self.value(company))
+            best_recommendation = sampled_locations[0]
 
             # Add the best recommendation to the list of recommendations
             recommendations.append(best_recommendation)
 
+            found_next_best = False
+
             # Remove samples that are too close to the best recommendation
-            sampled_locations = [company for company in sampled_locations if self.distance(best_recommendation, company) >= self.min_recommendation_distance]
-            print(f"Remaining samples: {len(sampled_locations)}")
+            next_sampled_locations = []
+            total = 0
+            for company in sampled_locations:
+                total += 1
+                if not found_next_best:
+                    not_too_close = True
+                    for recommendation in recommendations:
+                        if self.distance(recommendation, company) <= self.min_recommendation_distance:
+                            not_too_close = False
+                            break
+                    if not_too_close:
+                        found_next_best = True
+                if found_next_best:
+                    next_sampled_locations.append(company)
+
+            sampled_locations = next_sampled_locations
+
+
 
         if not self.value_predictor.is_initialized():
             # self.cache.save()
@@ -174,6 +200,9 @@ class LocationRecommender:
         recommendations = self.get_location_recommendations(max_companies)
         for recommendation in recommendations:
             recommendation.targets = [target for target in self.targets if self.distance(recommendation, target) <= self.display_radius]
+
+        for recommendation in recommendations:
+            print(self.value(recommendation))
         return recommendations
 
     def set_sample_size(self, sample_size: int):

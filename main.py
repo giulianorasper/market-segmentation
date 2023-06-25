@@ -35,13 +35,13 @@ def get_recommendations():
 
     # Extract parameters
     the_target = parameters['selectedTargetCompanies']
-    min_distance = 10
+    min_distance = 50
     radius = int(parameters['detailsRadius'])
     max_recommendations = int(parameters['maxRecommendations'])
 
 
     # use a small sample size for testing
-    sample_size = 10
+    sample_size = 10000
     recommender = LocationRecommender(companies, sample_size=sample_size)
 
     # Set the target tags, minimum distance, and radius
@@ -50,7 +50,7 @@ def get_recommendations():
     recommender.set_detailed_view_radius(radius)
 
     # Get recommendations
-    recommendations: List[Company] = recommender.get_attributed_location_recommendations(max_companies=max_recommendations)
+    recommendations: List[Company] = recommender.get_location_recommendations(max_companies=max_recommendations)
 
     # Convert recommendations to JSON
     recommendations = [company.to_map() for company in recommendations]
