@@ -17,7 +17,7 @@ GERMANY_LON_MAX = 15.0419
 
 
 class LocationRecommender:
-    def __init__(self, companies: List[Company], sample_size: int = 100000):
+    def __init__(self, companies: List[Company], sample_size: int = 100000, download_model=True):
         self.companies = companies
         self.target_tags = []
         self.targets = []
@@ -32,7 +32,7 @@ class LocationRecommender:
 
         self.M = 30
 
-        self.value_predictor: ValuePredictor = ValuePredictor()
+        self.value_predictor: ValuePredictor = ValuePredictor(download_model=download_model)
         if not self.value_predictor.is_initialized():
             self.cache = Cache("distances", {})
             self.distances = self.cache.value

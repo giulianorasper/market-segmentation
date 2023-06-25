@@ -7,7 +7,7 @@ from backend.code import config
 
 class Cache:
 
-    def __init__(self, id: str, default=None):
+    def __init__(self, id: str, default=None, verbose=True):
         cache_folder = config.cache_path
         self.hits = 0
         self.misses = 0
@@ -20,13 +20,16 @@ class Cache:
         self.cache_file = cache_folder + id + ".pkl"
 
         if os.path.exists(self.cache_file):
-            print(f"Loading cache with id {id}...")
+            if verbose:
+                print(f"Loading cache with id {id}...")
             start = time.time()
             with open(self.cache_file, 'rb') as file:
                 self.value = pickle.load(file)
-            print(f"Cache loaded in {config.rounding_policy(time.time() - start)} seconds")
+            if verbose:
+                print(f"Cache loaded in {config.rounding_policy(time.time() - start)} seconds")
         else:
-            print(f"Creating cache with id {id}...")
+            if verbose:
+                print(f"Creating cache with id {id}...")
             if default is None:
                 raise ValueError("default must not be None")
             self.value = default
