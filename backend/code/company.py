@@ -40,6 +40,8 @@ class Company:
         # color code given as HEX string
         self.color: str = None
 
+        self.value: float = float('nan')
+
     def __str__(self):
         # print all attributes and their values
         return str(self.__dict__)
@@ -53,6 +55,7 @@ class Company:
                 "latitude": self.latitude,
                 "longitude": self.longitude,
             },
+            "value": self.value,
         }
         return info
 

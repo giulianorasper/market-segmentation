@@ -3,7 +3,7 @@ import os.path
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-companies_table_to_load = "Preprocessed_Data_V2.xlsx"
+companies_table_to_load = "companies_germany.xlsx"
 
 # Don't touch
 resources_path = os.path.join(here, "../resources/")

@@ -24,6 +24,19 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
     if res:
         return res
 
+    if os.path.isfile(filepath):
+        print("[INFO] Using dataset from local file.")
+    else:
+        print("[INFO] Dataset not found locally. Downloading from huggingface hub...")
+        from huggingface_hub import hf_hub_download
+
+        REPO_ID = "grasper/market-segmentation"
+        FILENAME = file_name
+
+        filepath = hf_hub_download(repo_id=REPO_ID, filename=FILENAME)
+
+    print("[INFO] The companies are loaded for the first time from the dataset. This may take about a minute...")
+    print("[INFO] The next time you run the program, the companies will be loaded from the cache.")
 
     # Reading the dataset file
     df = pd.read_excel(filepath)

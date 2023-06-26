@@ -15,13 +15,18 @@ GERMANY_LAT_MAX = 55.0991
 GERMANY_LON_MIN = 5.8663
 GERMANY_LON_MAX = 15.0419
 
+SAARLAND_LAT_MIN = 49.1769
+SAARLAND_LAT_MAX = 49.657
+SAARLAND_LON_MIN = 6.2032
+SAARLAND_LON_MAX = 7.5014
+
 
 class LocationRecommender:
     def __init__(self, companies: List[Company], sample_size: int = 100000, download_model=True):
         self.companies = companies
         self.target_tags = []
         self.targets = []
-        self.min_recommendation_distance = 50 # km
+        self.min_recommendation_distance = 20 # km
         self.display_radius = 1 # km
 
         self.sample_size = sample_size
@@ -31,6 +36,8 @@ class LocationRecommender:
         self.misses = 0
 
         self.M = 30
+
+        self.saarland_only = False
 
         self.value_predictor: ValuePredictor = ValuePredictor(download_model=download_model)
         if not self.value_predictor.is_initialized():
@@ -52,6 +59,9 @@ class LocationRecommender:
 
     def set_min_recommendation_distance(self, distance: int):
         self.min_recommendation_distance = distance
+
+    def set_saarland_only(self, saarland_only: bool):
+        self.saarland_only = saarland_only
 
     def set_M(self, M: int):
         self.M = M
@@ -108,20 +118,14 @@ class LocationRecommender:
         # one could define how much potential a company has
         return 1
 
-    def is_in_germany(self, latitude, longitude):
-        geolocator = Nominatim(user_agent="my-app")  # Create a geolocator object
-        location = geolocator.reverse(f"{latitude}, {longitude}", exactly_one=True)  # Perform reverse geocoding
-
-        if location is not None:
-            country = location.raw['address'].get('country')  # Extract the country information
-            return country == 'Germany'
-
-        return False
-
     def get_random_point_in_germany(self):
         # Generate random latitude and longitude
-        latitude = random.uniform(GERMANY_LAT_MIN, GERMANY_LAT_MAX)
-        longitude = random.uniform(GERMANY_LON_MIN, GERMANY_LON_MAX)
+        if self.saarland_only:
+            latitude = random.uniform(SAARLAND_LAT_MIN, SAARLAND_LAT_MAX)
+            longitude = random.uniform(SAARLAND_LON_MIN, SAARLAND_LON_MAX)
+        else:
+            latitude = random.uniform(GERMANY_LAT_MIN, GERMANY_LAT_MAX)
+            longitude = random.uniform(GERMANY_LON_MIN, GERMANY_LON_MAX)
 
         latitude = config.rounding_policy(latitude)
         longitude = config.rounding_policy(longitude)
@@ -150,7 +154,9 @@ class LocationRecommender:
         print(f"Performing location recommendations (max: {max_companies}) using {SAMPLING_SIZE} monte carlo samples.")
 
         sampled_locations = self.get_random_possible_company_locations(SAMPLING_SIZE)
-        sampled_locations.sort(key=lambda x: self.value(x), reverse=True)
+        for company in sampled_locations:
+            company.value = self.value(company)
+        sampled_locations.sort(key=lambda x: x.value, reverse=True)
         recommendations = []
 
         for _ in range(max_companies):
@@ -194,6 +200,7 @@ class LocationRecommender:
             print(f"Cache hits: {self.hits / (self.hits + self.misses) * 100}%")
             print(f"recommendation: {[str(r) for r in recommendations]}")
             print(f"miss time: {self.miss_time}")
+
         return recommendations
 
     def get_attributed_location_recommendations(self, max_companies: int):

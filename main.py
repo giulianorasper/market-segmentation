@@ -11,6 +11,8 @@ from backend.code.location_recommender import LocationRecommender
 
 app = Flask(__name__, static_url_path='/static')
 companies = preprocessing.get_companies(config.companies_path)
+sample_size = 10000
+recommender = LocationRecommender(companies, sample_size=sample_size)
 
 @app.route('/')
 def index():
@@ -38,13 +40,14 @@ def get_recommendations():
     min_distance = 50
     radius = int(parameters['detailsRadius'])
     max_recommendations = int(parameters['maxRecommendations'])
+    saarland_only = bool(parameters['saarlandOnly'])
 
 
     # use a small sample size for testing
-    sample_size = 10000
-    recommender = LocationRecommender(companies, sample_size=sample_size)
+
 
     # Set the target tags, minimum distance, and radius
+    recommender.set_saarland_only(saarland_only)
     recommender.set_target_tags(the_target)
     recommender.set_min_recommendation_distance(min_distance)
     recommender.set_detailed_view_radius(radius)
@@ -62,7 +65,8 @@ def get_recommendations():
         "geolocation": {
             "latitude": 123,
             "longitude": 321
-        }...
+        },
+        "value": "42.33",
     }
     This returned to js and drawn on the map
     """
