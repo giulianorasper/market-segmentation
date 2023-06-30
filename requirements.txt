@@ -7,3 +7,4 @@ matplotlib
 tqdm
 flask
 huggingface_hub
+numpy
