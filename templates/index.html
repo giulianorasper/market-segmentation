@@ -90,46 +90,15 @@
     </div>
 
     <div class="parameters">
-    <label for="max_recommendations">Max Recommendations:</label>
-    <div class="parameter-info" data-tooltip="Number of max reccomendations. Min 1, Max 100.">
+      <label for="max_recommendations">Number of Recommendations:</label>
+      <div class="parameter-info" data-tooltip="Number of recommendations. Min 1, Max 100.">
         <i class="fas fa-solid fa-info fa-xs"></i>
-          </div>
-    <input type="range" id="max_recommendations" min="1" max="100">
-    <output id="max_recommendations_value"></output>
-    </div>
-
-    <div class="parameters">
-    <label for="consider_employee_count">Consider Employee Count:</label>
-    
-    <input type="checkbox" id="consider_employee_count">
+      </div>
+      <input type="range" id="max_recommendations" min="1" max="100" value="20">
+      <output id="max_recommendations_value"></output>
     </div>
     
-    <div class="parameters">
-    <label for="consider_tax_rates">Consider Tax Rates:</label>
-    <input type="checkbox" id="consider_tax_rates">
-    </div>
-
-    <div class="parameters">
-        <label for="consider_possible_competitors">Consider Possible Competitors:</label>
-        <input type="checkbox" id="consider_possible_competitors">
-    </div>
-
-    <div class="parameters">
-        <label for="detailed_view">Detailed View:</label>
-        <select id="detailed_view">
-          <option value="SHOW_COMPETITORS">Show Competitors</option>
-          <option value="SHOW_TARGETS">Show Targets</option>
-          <option value="SHOW_BOTH">Show Both</option>
-        </select>
-    </div>
-    
-    <div class="parameters">
-        
-    <label for="details_radius">Details Radius (in km):</label>
-    <input type="number" id="details_radius" min="1" max="1000">
-
-    </div>
-
+ 
     <button id="apply_button">Apply</button>
   </div>
   <div id="map">
@@ -150,11 +119,23 @@
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
       maxZoom: 18,
     }).addTo(map);
+
   </script>
   <script src="../static/js/target_companies.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chroma-js@2.1.1/chroma.min.js"></script>
   <script>
-    function drawMap(recommendations, radius) {
+    const rangeInput = document.getElementById('max_recommendations');
+    const valueOutput = document.getElementById('max_recommendations_value');
+
+    // Update the value output element when the range input changes
+    rangeInput.addEventListener('input', function() {
+      valueOutput.textContent = rangeInput.value;
+    });
+
+    // Initialize the value output element with the default value
+    valueOutput.textContent = rangeInput.value;
+
+    function drawMap(recommendations) {
       // Remove previous map markers if any
       // ...
       console.log('Map:', map._layers);
@@ -183,9 +164,9 @@
         const mapSize = tileSize * Math.pow(2, zoomLevel); // Total size of the map in pixels
 
         const metersPerPixel = earthCircumference * Math.cos((latitude * Math.PI) / 180) / mapSize;
-        const radiusInPixels = (radius * 1000) / metersPerPixel;
+        const radiusInPixels = (20 * 1000) / metersPerPixel;
 
-        console.log(`Radius In KM: ${radius}, Radius in px: ${radiusInPixels}, zoomLevel: ${zoomLevel} `)
+        console.log(`Radius In KM: ${5}, Radius in px: ${radiusInPixels}, zoomLevel: ${zoomLevel} `)
         const marker = L.circleMarker([latitude, longitude], {
           radius: radiusInPixels,
           color: color,
@@ -197,8 +178,6 @@
         //marker.bindPopup(getRecommendationPopupContent(recommendation));
       });
     }
-    
-    
     // Example JavaScript code to add event listener to the apply button
     const applyButton = document.getElementById('apply_button');
     applyButton.addEventListener('click', applyOptions);
@@ -210,11 +189,7 @@
       const yourCompany = document.getElementById('your_company').value;
       const saarlandOnly = document.getElementById('saarland_only').checked;
       const maxRecommendations = document.getElementById('max_recommendations').value;
-      const considerEmployeeCount = document.getElementById('consider_employee_count').checked;
-      const considerTaxRates = document.getElementById('consider_tax_rates').checked;
-      const considerPossibleCompetitors = document.getElementById('consider_possible_competitors').checked;
-      const detailedView = document.getElementById('detailed_view').value;
-      const detailsRadius = document.getElementById('details_radius').value;
+      console.log(maxRecommendations);
       
 
       const parameters = {
@@ -222,7 +197,6 @@
         selectedTargetCompanies,
         saarlandOnly,
         maxRecommendations,
-        detailsRadius
       }
 
       fetch('/save_parameters', {
@@ -236,7 +210,7 @@
       .then(data => {
         // Process the recommendations data here
         console.log(data);
-        drawMap(data, detailsRadius)
+        drawMap(data)
         // Perform any necessary operations on the recommendations
         // Update the HTML or perform other actions based on the recommendations
   })

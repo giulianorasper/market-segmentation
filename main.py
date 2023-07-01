@@ -38,7 +38,7 @@ def get_recommendations():
     # Extract parameters
     the_target = parameters['selectedTargetCompanies']
     min_distance = 50
-    radius = int(parameters['detailsRadius'])
+    #radius = int(parameters['detailsRadius'])
     max_recommendations = int(parameters['maxRecommendations'])
     saarland_only = bool(parameters['saarlandOnly'])
 
@@ -50,7 +50,7 @@ def get_recommendations():
     recommender.set_saarland_only(saarland_only)
     recommender.set_target_tags(the_target)
     recommender.set_min_recommendation_distance(min_distance)
-    recommender.set_detailed_view_radius(radius)
+    #recommender.set_detailed_view_radius(radius)
 
     # Get recommendations
     recommendations: List[Company] = recommender.get_location_recommendations(max_companies=max_recommendations)
