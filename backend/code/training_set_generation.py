@@ -14,7 +14,7 @@ def generate():
             if tag not in labels:
                 labels.append(tag)
 
-    recommender = LocationRecommender(companies)
+    recommender = LocationRecommender(companies, download_model=False)
     recommender.set_sample_size(100)
 
     time_taken = 0
