@@ -135,7 +135,7 @@
     // Initialize the value output element with the default value
     valueOutput.textContent = rangeInput.value;
 
-    function drawMap(recommendations) {
+    function drawMap(recommendations, saarlandOnly) {
       // Remove previous map markers if any
       // ...
       console.log('Map:', map._layers);
@@ -164,7 +164,15 @@
         const mapSize = tileSize * Math.pow(2, zoomLevel); // Total size of the map in pixels
 
         const metersPerPixel = earthCircumference * Math.cos((latitude * Math.PI) / 180) / mapSize;
-        const radiusInPixels = (20 * 1000) / metersPerPixel;
+        var radiusInPixels;
+        if (saarlandOnly){
+        radiusInPixels = (2 * 1000) / metersPerPixel; // Adjust the radius (10 km in this example)
+        console.log('radiusInPixels', radiusInPixels)
+        } else {
+          radiusInPixels = (20 * 1000) / metersPerPixel;
+          console.log(`Radius In KM: ${5}, Radius in px: ${radiusInPixels}, zoomLevel: ${zoomLevel} `)
+        }
+        
 
         console.log(`Radius In KM: ${5}, Radius in px: ${radiusInPixels}, zoomLevel: ${zoomLevel} `)
         const marker = L.circleMarker([latitude, longitude], {
@@ -208,7 +216,7 @@
       .then(data => {
         // Process the recommendations data here
         console.log(data);
-        drawMap(data)
+        drawMap(data, saarlandOnly)
         // Perform any necessary operations on the recommendations
         // Update the HTML or perform other actions based on the recommendations
   })
@@ -221,7 +229,7 @@
        if (saarlandOnly) {
         const saarlandBounds = L.latLngBounds(
           L.latLng(49.2, 6.5), // Southwest corner coordinate (latitude, longitude)
-          L.latLng(49.6, 7.3)  // Northeast corner coordinate (latitude, longitude)
+          L.latLng(49.9, 7.3)  // Northeast corner coordinate (latitude, longitude)
         );
         map.fitBounds(saarlandBounds);
       } else {
