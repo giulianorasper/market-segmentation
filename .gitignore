@@ -2,3 +2,4 @@
 backend/resources/*
 backend/cache/*
 *__pycache__*
+.hypothesis
