@@ -1,3 +1,4 @@
 .idea
 backend/resources/*
 backend/cache/*
+*__pycache__*
