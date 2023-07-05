@@ -186,14 +186,12 @@
     function applyOptions() {
       // Retrieve the selected options from the sidebar
       const selectedTargetCompanies = getSelectedTargetCompanies();
-      const yourCompany = document.getElementById('your_company').value;
       const saarlandOnly = document.getElementById('saarland_only').checked;
       const maxRecommendations = document.getElementById('max_recommendations').value;
       console.log(maxRecommendations);
       
 
       const parameters = {
-        yourCompany,
         selectedTargetCompanies,
         saarlandOnly,
         maxRecommendations,
