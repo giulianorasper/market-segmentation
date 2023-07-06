@@ -18,12 +18,16 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
 
     file_name = os.path.basename(filepath)
 
+    # We use a cache to speed up the loading process
+    # for the next time the program is run.
     cache = Cache(f"companies_{file_name}", [])
     res = cache.value
 
     if res:
         return res
 
+    # We use a local dataset if available.
+    # Otherwise, we download it from the huggingface hub.
     if os.path.isfile(filepath):
         print("[INFO] Using dataset from local file.")
     else:
@@ -73,6 +77,11 @@ def get_companies(filepath: str) -> List[Company]:  # PR added filepath to datas
 
 
 def string_to_tuple(input_string):
+    """
+    Converts a string of the form "(x,y)" to a tuple of floats (x,y)
+    :param input_string: The string to convert.
+    :return: The tuple of floats.
+    """
     # Remove parentheses and whitespace from the string
     cleaned_string = input_string.strip('() ')
 

@@ -11,7 +11,7 @@ cache_path = os.path.join(here, "../cache/")
 companies_path = resources_path + companies_table_to_load
 
 
-# accuracy explained:
+# accuracy explained (numbers = digits after comma):
 # 1: ~11km distance between samples
 # 2: ~1km distance between samples
 # 3: <1m distance between samples
