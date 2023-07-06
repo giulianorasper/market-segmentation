@@ -37,6 +37,7 @@ class LocationRecommender:
         self.companies = companies
         self.target_tags = []
         self.targets = []
+        self.target_tag_to_companies = {}
 
         # How far recommendations should be apart from each other.
         # 𝛿-distinctiveness in the paper
@@ -77,6 +78,13 @@ class LocationRecommender:
         self.target_tags = target_tags
         # all companies that have at least one of the target tags
         self.targets = [company for company in self.companies if set(company.tags).intersection(set(target_tags))]
+
+        for company in self.targets:
+            for tag in company.tags:
+                if tag not in self.target_tag_to_companies:
+                    self.target_tag_to_companies[tag] = []
+                self.target_tag_to_companies[tag].append(company)
+
         print("Found", len(self.targets), "target companies")
 
     def set_detailed_view_radius(self, radius: int):
@@ -119,21 +127,26 @@ class LocationRecommender:
         if target_company is None:
             # If we have a value predictor, use it instead of calculating the value explicitly.
             if self.value_predictor.is_initialized():
-                return self.value_predictor.predict_single(*recommended_company.get_lat_long(), self.targets[0].tags[0])
+                value_per_target = [self.value_predictor.predict_single(*recommended_company.get_lat_long(), tag) for tag in self.target_tags]
+                return sum(value_per_target)
 
-            # Check if the value is already cached.
-            if (recommended_company.get_lat_long(), self.targets[0].tags[0]) in self.values:
-                self.value_cache.hit()
-                return self.values[recommended_company.get_lat_long(), self.targets[0].tags[0]]
+            value_per_target = []
 
-            # If not, calculate it.
-            start = time.time()
-            values = [self.value(recommended_company, target) for target in self.targets]
-            self.miss_time += time.time() - start
-            value = sum(values)
-            self.values[recommended_company.get_lat_long(), self.targets[0].tags[0]] = value
-            self.value_cache.miss()
-            return value
+            for tag in self.target_tags:
+                # Check if the value is already cached.
+                if (recommended_company.get_lat_long(), tag) in self.values:
+                    self.value_cache.hit()
+                    value_per_target.append(self.values[recommended_company.get_lat_long(), tag])
+                else:
+                    # If not, calculate it.
+                    start = time.time()
+                    tag_value = sum([self.value(recommended_company, target_company) for target_company in self.target_tag_to_companies[tag]])
+                    self.values[recommended_company.get_lat_long(), tag] = tag_value
+                    value_per_target.append(tag_value)
+                    self.miss_time += time.time() - start
+                    self.value_cache.miss()
+
+            return sum(value_per_target)
 
         # Calculate the value a single target company contributes.
         # Depends on the vicinity (relative distance in relation to M)
