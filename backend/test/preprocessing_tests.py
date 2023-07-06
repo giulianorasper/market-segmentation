@@ -5,8 +5,15 @@ from backend.code import preprocessing
 
 
 class TestProprocessing(unittest.TestCase):
+    """
+    Tests the preprocessing module.
+    """
+
     @given(st.lists(st.floats(), min_size=2, max_size=2))
     def test_string_to_tuple(self, coordinates):
+        """
+        Tests the string_to_tuple function.
+        """
         lat = coordinates[0]
         lon = coordinates[1]
 

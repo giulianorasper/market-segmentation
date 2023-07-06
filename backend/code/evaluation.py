@@ -5,6 +5,10 @@ from backend.code import preprocessing, config
 from backend.code.location_recommender import LocationRecommender
 
 
+"""
+DEPRECATED: THIS CODE IS UNCHECKED AND NOT ACTIVELY USED AS OF NOW
+"""
+
 def calculate_variance_between_lists(list1, list2):
     # Check if the lists have the same length
     if len(list1) != len(list2):

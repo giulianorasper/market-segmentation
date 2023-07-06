@@ -32,6 +32,9 @@ def company_strategy(draw):
 
 
 class TestRecommendations(unittest.TestCase):
+    """
+    Tests the location recommender (crash tests).
+    """
 
     @given(company_strategy(), st.integers(min_value=0, max_value=50))
     @settings(max_examples=50)
